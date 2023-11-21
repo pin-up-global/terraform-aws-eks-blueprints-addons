@@ -91,8 +91,9 @@ output "external_secrets" {
 output "fargate_fluentbit" {
   description = "Map of attributes of the configmap and IAM policy created"
   value = {
-    configmap  = kubernetes_config_map_v1.aws_logging
-    iam_policy = aws_iam_policy.fargate_fluentbit
+    configmap            = kubernetes_config_map_v1.aws_logging
+    iam_policy           = aws_iam_policy.fargate_fluentbit
+    cloudwatch_log_group = aws_cloudwatch_log_group.fargate_fluentbit
   }
 }
 
@@ -113,6 +114,7 @@ output "karpenter" {
     {
       node_instance_profile_name = try(aws_iam_instance_profile.karpenter[0].name, "")
       node_iam_role_arn          = try(aws_iam_role.karpenter[0].arn, "")
+      node_iam_role_name         = try(aws_iam_role.karpenter[0].name, "")
       sqs                        = module.karpenter_sqs
     }
   )
@@ -250,6 +252,7 @@ output "gitops_metadata" {
       service_account            = local.karpenter_service_account_name
       sqs_queue_name             = module.karpenter_sqs.queue_name
       node_instance_profile_name = local.karpenter_node_instance_profile_name
+      node_iam_role_name         = try(aws_iam_role.karpenter[0].name, "")
       } : "karpenter_${k}" => v if var.enable_karpenter
     },
     { for k, v in {
